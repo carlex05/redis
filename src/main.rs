@@ -46,7 +46,7 @@ fn deserialize(param: &String) -> Resp {
     if datatype == '$' {
         return deserialize_bulk(&characters);
     }else if param.starts_with("*") {
-        return deserialize(param);
+        return deserialize_array(characters, param);
     }
     Resp::BulkString(Some("Hello world!".to_string()))
 }
@@ -60,7 +60,7 @@ fn deserialize_array(characters: Vec<char>, resp: &String) -> Resp {
         let resp_data: &str = tokens[index*2];
         resps.push(format!("{resp_type}\r\n{resp_data}"));
     }
-    let content: Vec<Resp> = resps.iter().map(|resp| deserialize(resp)).collect();
+    let content: Vec<Resp> = resps.iter().map(|respL| deserialize(respL)).collect();
     Resp::Array(content)
 }
 
