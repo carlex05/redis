@@ -1,7 +1,41 @@
-use std::{fmt::format, str::Chars};
+use std::{fmt::format, io::Read, net::TcpListener, str, thread};
 
 fn main() {
-    println!("Hello, world!");
+    let listener = TcpListener::bind("127.0.0.1:6379").unwrap();
+    println!("Servidor escuchando en el puerto 6379");
+
+    for stream in listener.incoming() {
+        match stream {
+            Ok(mut stream) => {
+                thread::spawn(move || {
+                    println!("Nueva conexión: {}", stream.peer_addr().unwrap());
+                    let mut buffer = [0; 1024];
+
+                    match stream.read(&mut buffer) {
+                        Ok(size) => {
+                            // Convertir los bytes leídos en una cadena
+                            let received_data = match str::from_utf8(&buffer[..size]) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    println!("Error al convertir los datos en cadena: {}", e);
+                                    return;
+                                }
+                            };
+
+                            println!("Datos recibidos: {}", received_data);
+                            
+                        }
+                        Err(e) => {
+                            println!("Error al leer: {}", e);
+                        }
+                    }
+                });
+            }
+            Err(e) => {
+                println!("Error de conexión: {}", e);
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
